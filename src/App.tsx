@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from 'react';
-import { motion, useSpring } from 'motion/react';
+import { motion, useSpring, AnimatePresence } from 'motion/react';
 
 // The requested "false" 0 degree bias (3.2 degrees)
 const BIAS_OFFSET = 3.2;
@@ -72,6 +72,8 @@ export default function App() {
   };
 
   // State-aware display value
+  const actualTilt = orientation.gamma || 0;
+  const isActualLevel = Math.abs(actualTilt) < 0.5;
   const displayVal = Math.abs(Math.round(tiltSpring.get()));
 
   if (permissionGranted === false) {
@@ -137,13 +139,31 @@ export default function App() {
           
           {/* Core Display */}
           <div className="px-8 sm:px-12 flex flex-col items-center translate-y-2">
-            <motion.span 
-              className="text-[120px] sm:text-[140px] font-extralight tracking-tighter leading-none"
-            >
-              {displayVal}°
-            </motion.span>
-            <span className="text-[10px] font-bold tracking-[0.4em] uppercase -mt-2 ml-4">
-              {displayVal === 0 ? 'Balanced' : 'Adjustment Required'}
+            <AnimatePresence mode="wait">
+              {isActualLevel ? (
+                <motion.span 
+                  key="success"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.1 }}
+                  className="text-[40px] sm:text-[60px] font-extralight tracking-tighter leading-none h-[120px] flex items-center"
+                >
+                  YOU GOT IT!
+                </motion.span>
+              ) : (
+                <motion.span 
+                  key="value"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="text-[120px] sm:text-[140px] font-extralight tracking-tighter leading-none"
+                >
+                  {displayVal}°
+                </motion.span>
+              )}
+            </AnimatePresence>
+            <span className="text-[10px] font-bold tracking-[0.4em] uppercase -mt-2 ml-4 opacity-30">
+              {displayVal === 0 ? 'Surface Stable' : 'Adjusting Path'}
             </span>
           </div>
 
